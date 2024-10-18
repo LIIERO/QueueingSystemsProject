@@ -6,7 +6,14 @@ namespace ClinicQueueSimulation
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            PatientQueue queue = new();
+            PatientGenerator generator1 = new(0);
+            Doctor doctor1 = new(0, 1);
+            Doctor doctor2 = new(1, 1);
+
+            Simulation sim = new(0.1);
+            sim.Start();
+            
         }
     }
 }
