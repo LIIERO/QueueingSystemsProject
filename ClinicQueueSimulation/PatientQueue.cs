@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 
 namespace ClinicQueueSimulation
 {
-    internal class PatientQueue : RealTimeObject
+    internal class PatientQueue// : RealTimeObject
     {
-        private Dictionary<PatientPriority, List<Patient>> patients = new();
+        public List<Patient> PatientList { get; private set; } = new(); // List of patients in order of appearence
+
+        private Dictionary<PatientPriority, List<Patient>> patients = new(); // Patients sorted by priority
 
         public PatientQueue()
         {
@@ -24,15 +26,17 @@ namespace ClinicQueueSimulation
             EventManager.RequestPatient -= RoutePatientToDoctor;
         }
 
-        protected override void Update(double delta)
+        /*protected override void Update(double delta)
         {
             base.Update(delta);
 
             Console.WriteLine(GetQueueLength());
-        }
+        }*/
 
         private void AddPatient(Patient patient)
         {
+            PatientList.Add(patient);
+
             PatientPriority priority = patient.Priority;
 
             if (!patients.ContainsKey(priority))
@@ -55,6 +59,9 @@ namespace ClinicQueueSimulation
 
                 Patient firstPatient = patients[priority][0];
                 patients[priority].RemoveAt(0);
+
+                PatientList.Remove(firstPatient);
+
                 return firstPatient;
             }
 
@@ -68,6 +75,8 @@ namespace ClinicQueueSimulation
             if (patients[patient.Priority].Count == 0) return;
 
             patients[patient.Priority].Remove(patient);
+
+            PatientList.Remove(patient);
         }
 
         public void RoutePatientToDoctor(Doctor doctor)
@@ -77,12 +86,19 @@ namespace ClinicQueueSimulation
 
         public int GetQueueLength()
         {
-            int length = 0;
-            foreach (List<Patient> p in patients.Values)
+            return PatientList.Count;
+        }
+
+        public string GetVisualRepresentation()
+        {
+            StringBuilder sb = new();
+            int l = GetQueueLength();
+            for (int i = 0; i < Constants.maxQueueLength; i++)
             {
-                length += p.Count;
+                if (i < l) sb.Append((int)PatientList[i].Priority);
+                else sb.Append('_');
             }
-            return length;
+            return sb.ToString();
         }
     }
 }

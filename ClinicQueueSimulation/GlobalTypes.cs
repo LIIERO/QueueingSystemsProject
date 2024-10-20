@@ -11,6 +11,8 @@ namespace ClinicQueueSimulation
     public static class Constants
     {
         public const int highestPatientPriority = (int)PatientPriority.High;
+
+        public const int maxQueueLength = 99;
     }
 
 }

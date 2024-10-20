@@ -13,8 +13,8 @@ namespace ClinicQueueSimulation
         public int PatientsCured { get; private set; } = 0;
         public bool IsWorking { get; private set; } = false;
         public bool IsMissingPatients { get; private set; } = true; // Nie ma pacjentów w kolejce do wzięcia
+        public Patient? CurrentPatient { get; private set; } = null; // TODO: Do something with the patient after curing?
 
-        private Patient? currentPatient = null; // TODO: Do something with the patient after curing?
         private double serviceTimer = 0.0;
 
         public Doctor(uint id, double serviceTime) : base()
@@ -37,7 +37,7 @@ namespace ClinicQueueSimulation
             if (!IsWorking) return;
 
             serviceTimer += delta;
-            Console.WriteLine($"---{serviceTimer}");
+            //Console.WriteLine($"---{serviceTimer}");
 
             if (serviceTimer > ServiceTime) // patient has been cured
             {
@@ -45,9 +45,9 @@ namespace ClinicQueueSimulation
 
                 PatientsCured++;
 
-                currentPatient = null;
+                CurrentPatient = null;
 
-                Console.WriteLine("CURED");
+                //Console.WriteLine("CURED");
 
                 EventManager.InvokeRequestPatientEvent(this);
             }
@@ -59,14 +59,14 @@ namespace ClinicQueueSimulation
             if (patient == null)
             {
                 IsMissingPatients = true;
-                Console.WriteLine("No patient routed");
+                //Console.WriteLine("No patient routed");
                 return;
             }
 
-            Console.WriteLine($"ROUTED id: {patient.ID}, priority: {patient.Priority}");
+            //Console.WriteLine($"ROUTED id: {patient.ID}, priority: {patient.Priority}");
             IsMissingPatients = false;
             IsWorking = true;
-            currentPatient = patient;
+            CurrentPatient = patient;
             serviceTimer = 0.0;
         }
 
