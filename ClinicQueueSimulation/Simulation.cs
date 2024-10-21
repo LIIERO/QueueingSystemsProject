@@ -7,36 +7,64 @@ using System.Threading.Tasks;
 
 namespace ClinicQueueSimulation
 {
-    internal class Simulation(double simulationUpdateTime)
+    internal class Simulation
     {
-        public double SimulationUpdateTime { get; private set; } = simulationUpdateTime;
+        public double SimulationUpdateTime { get; private set; }
+        public double SimulationLength { get; private set; }
         public double CurrentTime { get; private set; } = 0.0;
-        public double DeltaTime { get; private set; } = 0.0;
+        public bool Running { get; private set; } = false;
+
+        private PeriodicTimer? periodicTimer = null;
+
+        public Simulation(double simulationUpdateTime, double simulationLength)
+        {
+            SimulationUpdateTime = simulationUpdateTime;
+            SimulationLength = simulationLength;
+
+            EventManager.StartSimulation += Start;
+            EventManager.StopSimulation += Stop;
+        }
+
+        ~Simulation()
+        {
+            EventManager.StartSimulation -= Start;
+            EventManager.StopSimulation -= Stop;
+        }
 
         public void Start()
         {
-            Stopwatch simulationTimer = new();
-            double previousFrameTime = 0.0;
-            double nextTickTimer = 0.0;
+            Running = true;
+            RunInBackground(TimeSpan.FromSeconds(SimulationUpdateTime), RunUpdate);
+        }
 
-            simulationTimer.Start();
+        public void Stop()
+        {
+            Running = false;
+            periodicTimer?.Dispose();
+        }
 
-            while (true)
+        async Task RunInBackground(TimeSpan timeSpan, Action action)
+        {
+            periodicTimer = new(timeSpan);
+            while (await periodicTimer.WaitForNextTickAsync())
             {
-                previousFrameTime = CurrentTime;
-                CurrentTime = simulationTimer.Elapsed.TotalSeconds;
-                DeltaTime = CurrentTime - previousFrameTime;
-
-                nextTickTimer += DeltaTime;
-
-                if (nextTickTimer >= SimulationUpdateTime)
-                {
-                    // Invoke update event every time simulation update time elapses
-                    EventManager.InvokeUpdateRealTimeObjectsEvent(nextTickTimer);
-
-                    nextTickTimer = 0.0;
-                }
+                if (!Running) break;
+                action();
             }
+        }
+
+        private void RunUpdate()
+        {
+            if (!Running) return;
+
+            if (CurrentTime >= SimulationLength)
+            {
+                EventManager.InvokeStopSimulationEvent();
+                return;
+            }
+
+            CurrentTime += SimulationUpdateTime;
+            EventManager.InvokeUpdateRealTimeObjectsEvent(SimulationUpdateTime);
         }
     }
 }

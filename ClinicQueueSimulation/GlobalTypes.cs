@@ -13,6 +13,8 @@ namespace ClinicQueueSimulation
         public const int highestPatientPriority = (int)PatientPriority.High;
 
         public const int maxQueueLength = 99;
+
+        public const double bufferDelay = 0.05;
     }
 
 }

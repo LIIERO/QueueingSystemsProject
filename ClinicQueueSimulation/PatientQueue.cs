@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace ClinicQueueSimulation
 {
-    internal class PatientQueue// : RealTimeObject
+    internal class PatientQueue
     {
         public List<Patient> PatientList { get; private set; } = new(); // List of patients in order of appearence
 
         private Dictionary<PatientPriority, List<Patient>> patients = new(); // Patients sorted by priority
+
 
         public PatientQueue()
         {
@@ -55,7 +56,7 @@ namespace ClinicQueueSimulation
 
                 if (!patients.ContainsKey(priority)) continue;
 
-                if (patients[priority].Count == 0) continue;
+                if (patients[priority].Count <= 0) continue;
 
                 Patient firstPatient = patients[priority][0];
                 patients[priority].RemoveAt(0);
