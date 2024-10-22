@@ -1,38 +1,47 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace ClinicQueueSimulation
 {
-    internal class PatientQueue
+    internal class PatientQueue : RealTimeObject
     {
         public List<Patient> PatientList { get; private set; } = new(); // List of patients in order of appearence
 
         private Dictionary<PatientPriority, List<Patient>> patients = new(); // Patients sorted by priority
+
+        private List<Doctor> requestingDoctors = new();
+        private Random random = new Random();
 
 
         public PatientQueue()
         {
             EventManager.AddPatientToQueue += AddPatient;
             EventManager.RemovePatientFromQueue += RemovePatient;
-            EventManager.RequestPatient += RoutePatientToDoctor;
+            EventManager.RequestPatient += AddDoctor;
         }
 
         ~PatientQueue()
         {
             EventManager.AddPatientToQueue -= AddPatient;
             EventManager.RemovePatientFromQueue -= RemovePatient;
-            EventManager.RequestPatient -= RoutePatientToDoctor;
+            EventManager.RequestPatient -= AddDoctor;
         }
 
-        /*protected override void Update(double delta)
+        protected override void Update(double delta)
         {
             base.Update(delta);
 
-            Console.WriteLine(GetQueueLength());
-        }*/
+            if (requestingDoctors.Count > 0)
+            {
+                int r = random.Next(requestingDoctors.Count);
+                requestingDoctors[r].RoutePatient(RemoveTopPatient());
+                requestingDoctors.RemoveAt(r);
+            }
+        }
 
         private void AddPatient(Patient patient)
         {
@@ -80,9 +89,9 @@ namespace ClinicQueueSimulation
             PatientList.Remove(patient);
         }
 
-        public void RoutePatientToDoctor(Doctor doctor)
+        public void AddDoctor(Doctor doctor)
         {
-            doctor.RoutePatient(RemoveTopPatient());
+            if (!requestingDoctors.Contains(doctor)) requestingDoctors.Add(doctor);
         }
 
         public int GetQueueLength()

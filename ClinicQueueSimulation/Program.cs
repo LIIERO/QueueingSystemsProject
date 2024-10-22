@@ -10,7 +10,7 @@ namespace ClinicQueueSimulation
             PatientQueue queue = new();
 
             PatientGenerator generator1 = new(0);
-            Doctor[] doctors = [new(0, 0.9), new(1, 1.1)];
+            Doctor[] doctors = [new(0, 1), new(1, 1)];
 
             InformationDisplay informationDisplay = new(sim, queue, doctors);
 
