@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ClinicQueueSimulation
 {
-    internal class Doctor
+    internal class Doctor : RealTimeObject
     {
         public uint ID { get; private set; }
         public double ServiceTime { get; private set; }
@@ -14,27 +14,37 @@ namespace ClinicQueueSimulation
         public bool IsWorking { get; private set; } = false;
         public bool IsMissingPatients { get; private set; } = true; // Nie ma pacjentów w kolejce do wzięcia
         public Patient? CurrentPatient { get; private set; } = null; // TODO: Do something with the patient after curing?
+        public List<Patient> HealedPatients { get; private set; } = new();
 
         public Doctor(uint id, double serviceTime) : base()
         {
-            EventManager.AddPatientToQueue += RequestPatientOnArrival;
-
             ID = id;
             ServiceTime = serviceTime;
         }
 
-        ~Doctor()
+        protected override void Update(double delta)
         {
-            EventManager.AddPatientToQueue -= RequestPatientOnArrival;
+            base.Update(delta);
+
+            if (IsMissingPatients)
+                EventManager.InvokeRequestPatientEvent(this);
         }
 
         private void CurePatient()
         {
             if (!IsWorking) return;
             IsWorking = false;
-            PatientsCured++;
+            
+            if (CurrentPatient != null)
+            {
+                PatientsCured++;
+                CurrentPatient.IsHealed = true;
+                HealedPatients.Add(CurrentPatient);
+            }    
+            else throw new NullException();
+
             CurrentPatient = null;
-            EventManager.InvokeRequestPatientEvent(this);
+            IsMissingPatients = true;
         }
 
         public void RoutePatient(Patient? patient) // Method used by PatientQueue class
@@ -51,15 +61,6 @@ namespace ClinicQueueSimulation
             CurrentPatient = patient;
 
             Task.Delay((int)(1000 * ServiceTime)).ContinueWith(t => CurePatient());
-        }
-
-        private void RequestPatientOnArrival(Patient _)
-        {
-            if (IsMissingPatients)
-            {
-                IsMissingPatients = false;
-                Task.Delay((int)(1000 * Constants.bufferDelay)).ContinueWith(t => EventManager.InvokeRequestPatientEvent(this));
-            }
         }
     }
 }

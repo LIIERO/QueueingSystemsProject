@@ -6,12 +6,16 @@ using System.Threading.Tasks;
 
 namespace ClinicQueueSimulation
 {
-    internal class Patient
+    internal class Patient : RealTimeObject
     {
         public static int NoPatients { get; private set; } = 0;
         private static int nextId = 0;
 
         public int ID { get; private set; }
+        public double TimeSpentInSystem { get; private set; } = 0.0;
+        public double TimeSpentInQueue { get; private set; } = 0.0;
+        public bool IsInQueue { get; set; } = true;
+        public bool IsHealed { get; set; } = false;
         public PatientPriority Priority { get; set; } // The priority may change during the simulation
 
         public Patient(PatientPriority priority)
@@ -22,8 +26,16 @@ namespace ClinicQueueSimulation
             nextId++;
         }
 
-        ~Patient() { NoPatients--; }
+        protected override void Update(double delta)
+        {
+            base.Update(delta);
 
-        // TODO: Patient gets bored after some time and they leave queue (invoke RemovePatientFromQueue on themselves)
+            if (IsHealed) return;
+
+            TimeSpentInSystem += delta;
+            if (IsInQueue) TimeSpentInQueue += delta;
+        }
+
+        ~Patient() { NoPatients--; }
     }
 }

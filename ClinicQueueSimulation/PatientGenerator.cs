@@ -9,25 +9,39 @@ namespace ClinicQueueSimulation
     internal class PatientGenerator : RealTimeObject
     {
         public uint ID { get; private set; }
+        public double TimeBetweenAttempts { get; private set; }
+        public int PercentageChanceEachAttempt { get; private set; }
+        public List<Patient> GeneratedPatients { get; private set; } = new();
+
+        private double attemptTimer = 0.0;
 
         private Random randomizer = new Random();
 
-        public PatientGenerator(uint id) : base()
+        public PatientGenerator(uint id, double timeBetweenAttempts, int percentageChanceEachAttempt) : base()
         {
             ID = id;
+            TimeBetweenAttempts = timeBetweenAttempts;
+            PercentageChanceEachAttempt = percentageChanceEachAttempt;
         }
 
         protected override void Update(double delta)
         {
             base.Update(delta);
 
-            // TODO: Make some proper generation
-            if (randomizer.Next(0, 4) == 0) // for now 25% for a patient to come each iteration without considering delta time
+            if (attemptTimer <= 0.0)
             {
-                PatientPriority priority = (PatientPriority)randomizer.Next(0, Constants.highestPatientPriority + 1);
-                Patient newPatient = new(priority);
-                EventManager.InvokeAddPatientToQueueEvent(newPatient);
+                attemptTimer = TimeBetweenAttempts;
+
+                if (randomizer.Next(0, 100) < PercentageChanceEachAttempt)
+                {
+                    PatientPriority priority = (PatientPriority)randomizer.Next(0, Constants.highestPatientPriority + 1);
+                    Patient newPatient = new(priority);
+                    GeneratedPatients.Add(newPatient);
+                    EventManager.InvokeAddPatientToQueueEvent(newPatient);
+                }
             }
+
+            attemptTimer -= delta;
         }
     }
 }

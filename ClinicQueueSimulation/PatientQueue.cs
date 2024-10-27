@@ -72,6 +72,7 @@ namespace ClinicQueueSimulation
 
                 PatientList.Remove(firstPatient);
 
+                firstPatient.IsInQueue = false;
                 return firstPatient;
             }
 
@@ -87,6 +88,8 @@ namespace ClinicQueueSimulation
             patients[patient.Priority].Remove(patient);
 
             PatientList.Remove(patient);
+
+            patient.IsInQueue = false;
         }
 
         public void AddDoctor(Doctor doctor)
