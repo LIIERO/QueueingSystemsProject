@@ -7,13 +7,24 @@ namespace ClinicQueueSimulation
         
         static void Main(string[] args)
         {
-            Simulation sim = new(0.05, 50.0);
-            PatientQueue queue = new();
+            Simulation sim = new(simulationUpdateTime: 0.05, simulationLength: 50.0);
 
-            PatientGenerator generator1 = new(0, 0.1, 40);
-            Doctor[] doctors = [new(0, 1.0), new(1, 1.5), new(2, 2.0), new(3, 2.5), new(4, 3.0)];
+            PatientQueue queue = new(id: 0);
 
-            InformationDisplay informationDisplay = new(sim, generator1, queue, doctors);
+            PatientQueue healedPatientsQueue = new(id: 1);
+
+            PatientGenerator generator1 = new(id: 0, targetQueueID: 0, timeBetweenAttempts: 0.1, percentageChanceEachAttempt: 40);
+
+            Doctor[] doctors = [
+                new(id: 0, serviceTime: 1.0, inputQueues: [0], targetQueueID: 1), 
+                new(id: 1, serviceTime: 1.5, inputQueues: [0], targetQueueID: 1), 
+                new(id: 2, serviceTime: 2.0, inputQueues: [0], targetQueueID: 1), 
+                new(id: 3, serviceTime: 2.5, inputQueues: [0], targetQueueID: 1),
+                new(id: 4, serviceTime: 3.0, inputQueues: [0], targetQueueID: 1)
+            ];
+
+            //InformationDisplay informationDisplay = new(sim, generator1, queue, doctors);
+            InformationDisplay informationDisplay = new(sim, generator1, healedPatientsQueue, doctors);
 
             EventManager.InvokeStartSimulationEvent();
 

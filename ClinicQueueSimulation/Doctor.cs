@@ -10,16 +10,20 @@ namespace ClinicQueueSimulation
     {
         public uint ID { get; private set; }
         public double ServiceTime { get; private set; }
+        public int[] InputQueues { get; private set; } // From which queues does the doctor take patients from?
+        public int TargetQueueID { get; private set; } // Which queue does the doctor put "healed" patients to?
         public int PatientsCured { get; private set; } = 0;
         public bool IsWorking { get; private set; } = false;
         public bool IsMissingPatients { get; private set; } = true; // Nie ma pacjentów w kolejce do wzięcia
         public Patient? CurrentPatient { get; private set; } = null; // TODO: Do something with the patient after curing?
         public List<Patient> HealedPatients { get; private set; } = new();
 
-        public Doctor(uint id, double serviceTime) : base()
+        public Doctor(uint id, double serviceTime, int[] inputQueues, int targetQueueID) : base()
         {
             ID = id;
             ServiceTime = serviceTime;
+            InputQueues = inputQueues;
+            TargetQueueID = targetQueueID;
         }
 
         protected override void Update(double delta)
@@ -27,7 +31,7 @@ namespace ClinicQueueSimulation
             base.Update(delta);
 
             if (IsMissingPatients)
-                EventManager.InvokeRequestPatientEvent(this);
+                EventManager.InvokeRequestPatientEvent(this, InputQueues);
         }
 
         private void CurePatient()
@@ -38,8 +42,9 @@ namespace ClinicQueueSimulation
             if (CurrentPatient != null)
             {
                 PatientsCured++;
-                CurrentPatient.IsHealed = true;
+                //CurrentPatient.IsHealed = true; // TODO: ustawić na true tylko jeśli poszedł do "kolejki" wyleczonych
                 HealedPatients.Add(CurrentPatient);
+                EventManager.InvokeAddPatientToQueueEvent(CurrentPatient, TargetQueueID);
             }    
             else throw new NullException();
 

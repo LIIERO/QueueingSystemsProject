@@ -9,6 +9,7 @@ namespace ClinicQueueSimulation
     internal class PatientGenerator : RealTimeObject
     {
         public uint ID { get; private set; }
+        public int TargetQueueID { get; private set; } // Which queue does the generator put patients to?
         public double TimeBetweenAttempts { get; private set; }
         public int PercentageChanceEachAttempt { get; private set; }
         public List<Patient> GeneratedPatients { get; private set; } = new();
@@ -17,9 +18,10 @@ namespace ClinicQueueSimulation
 
         private Random randomizer = new Random();
 
-        public PatientGenerator(uint id, double timeBetweenAttempts, int percentageChanceEachAttempt) : base()
+        public PatientGenerator(uint id, int targetQueueID, double timeBetweenAttempts, int percentageChanceEachAttempt) : base()
         {
             ID = id;
+            TargetQueueID = targetQueueID;
             TimeBetweenAttempts = timeBetweenAttempts;
             PercentageChanceEachAttempt = percentageChanceEachAttempt;
         }
@@ -37,7 +39,7 @@ namespace ClinicQueueSimulation
                     PatientPriority priority = (PatientPriority)randomizer.Next(0, Constants.highestPatientPriority + 1);
                     Patient newPatient = new(priority);
                     GeneratedPatients.Add(newPatient);
-                    EventManager.InvokeAddPatientToQueueEvent(newPatient);
+                    EventManager.InvokeAddPatientToQueueEvent(newPatient, TargetQueueID);
                 }
             }
 

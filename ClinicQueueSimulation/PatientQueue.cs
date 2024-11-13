@@ -9,6 +9,7 @@ namespace ClinicQueueSimulation
 {
     internal class PatientQueue : RealTimeObject
     {
+        public int ID { get; private set; }
         public List<Patient> PatientList { get; private set; } = new(); // List of patients in order of appearence
 
         private Dictionary<PatientPriority, List<Patient>> patients = new(); // Patients sorted by priority
@@ -17,8 +18,9 @@ namespace ClinicQueueSimulation
         private Random random = new Random();
 
 
-        public PatientQueue()
+        public PatientQueue(int id)
         {
+            ID = id;
             EventManager.AddPatientToQueue += AddPatient;
             EventManager.RemovePatientFromQueue += RemovePatient;
             EventManager.RequestPatient += AddDoctor;
@@ -43,8 +45,10 @@ namespace ClinicQueueSimulation
             }
         }
 
-        private void AddPatient(Patient patient)
+        private void AddPatient(Patient patient, int queueID)
         {
+            if (ID != queueID) return;
+
             PatientList.Add(patient);
 
             PatientPriority priority = patient.Priority;
@@ -79,8 +83,10 @@ namespace ClinicQueueSimulation
             return null;
         }
 
-        public void RemovePatient(Patient patient)
+        public void RemovePatient(Patient patient, int queueID)
         {
+            if (ID != queueID) return;
+
             if (!patients.ContainsKey(patient.Priority)) return;
 
             if (patients[patient.Priority].Count == 0) return;
@@ -92,8 +98,10 @@ namespace ClinicQueueSimulation
             patient.IsInQueue = false;
         }
 
-        public void AddDoctor(Doctor doctor)
+        public void AddDoctor(Doctor doctor, int[] queueIDlist)
         {
+            if (!queueIDlist.Contains(ID)) return;
+
             if (!requestingDoctors.Contains(doctor)) requestingDoctors.Add(doctor);
         }
 
