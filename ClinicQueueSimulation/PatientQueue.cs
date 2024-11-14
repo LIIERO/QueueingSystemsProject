@@ -37,20 +37,19 @@ namespace ClinicQueueSimulation
         {
             base.Update(delta);
 
-            if (requestingDoctors.Count > 0)
-            {
-                int r = random.Next(requestingDoctors.Count);
-                requestingDoctors[r].RoutePatient(RemoveTopPatient());
-                requestingDoctors.RemoveAt(r);
-            }
+            if (requestingDoctors.Count <= 0) return;
+            
+            int r = random.Next(requestingDoctors.Count);
+            requestingDoctors[r].RoutePatient(RemoveTopPatient());
+            requestingDoctors.RemoveAt(r);
         }
 
         private void AddPatient(Patient patient, int queueID)
         {
             if (ID != queueID) return;
 
+            patient.IsInQueue = true;
             PatientList.Add(patient);
-
             PatientPriority priority = patient.Priority;
 
             if (!patients.ContainsKey(priority))
@@ -60,24 +59,23 @@ namespace ClinicQueueSimulation
             patients[priority].Add(patient);
         }
 
-        public Patient? RemoveTopPatient()
+        public Patient? RemoveTopPatient() // Removes the top patient that wants to go to specified doctor
         {
             // Going from highest priority to lowest
-            for (int p = Constants.highestPatientPriority; p >= 0; p--)
+            for (int prio = Constants.highestPatientPriority; prio >= 0; prio--)
             {
-                PatientPriority priority = (PatientPriority)p;
+                PatientPriority priority = (PatientPriority)prio;
 
                 if (!patients.ContainsKey(priority)) continue;
 
                 if (patients[priority].Count <= 0) continue;
 
-                Patient firstPatient = patients[priority][0];
+                Patient nextPatient = patients[priority][0]; // Earliest patient of the priority
                 patients[priority].RemoveAt(0);
+                PatientList.Remove(nextPatient);
+                nextPatient.IsInQueue = false;
 
-                PatientList.Remove(firstPatient);
-
-                firstPatient.IsInQueue = false;
-                return firstPatient;
+                return nextPatient;
             }
 
             return null;
@@ -98,9 +96,9 @@ namespace ClinicQueueSimulation
             patient.IsInQueue = false;
         }
 
-        public void AddDoctor(Doctor doctor, int[] queueIDlist)
+        public void AddDoctor(Doctor doctor, int queueID)
         {
-            if (!queueIDlist.Contains(ID)) return;
+            if (queueID != ID) return;
 
             if (!requestingDoctors.Contains(doctor)) requestingDoctors.Add(doctor);
         }

@@ -15,8 +15,5 @@ namespace ClinicQueueSimulation
         public const int maxQueueLength = 99;
     }
 
-    public class NullException : Exception
-    {
-
-    }
+    public class NullException : Exception { }
 }

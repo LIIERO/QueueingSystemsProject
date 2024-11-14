@@ -15,22 +15,24 @@ namespace ClinicQueueSimulation
 
         private Simulation simulation;
         private PatientGenerator generator;
+        private PatientQueue[] queues;
         private PatientQueue mainQueue;
         private Doctor[] doctors;
 
-        private List<int> queueLengthHistory = new();
+        private List<int> mainQueueLengthHistory = new();
         private StringBuilder simCSV = new();
 
-        public InformationDisplay(Simulation simulation, PatientGenerator generator, PatientQueue mainQueue, Doctor[] doctors)
+        public InformationDisplay(Simulation simulation, PatientGenerator generator, PatientQueue[] queues, Doctor[] doctors)
         {
             this.simulation = simulation;
             this.generator = generator;
-            this.mainQueue = mainQueue;
+            this.queues = queues;
             this.doctors = doctors;
+            this.mainQueue = queues[0];
 
             EventManager.StopSimulation += DisplaySimulationData;
 
-            string headerLine = "Time [s],Queue length";
+            string headerLine = $"Time [s],Queue {mainQueue.ID} length";
             simCSV.AppendLine(headerLine);
         }
 
@@ -48,13 +50,17 @@ namespace ClinicQueueSimulation
             Console.WriteLine("Czas symulacji: {0:0.###}", simulation.CurrentTime);
 
             int l = mainQueue.GetQueueLength();
-            queueLengthHistory.Add(l);
-            Console.WriteLine("\nDługość kolejki: {0:00}", l);
+            mainQueueLengthHistory.Add(l);
+            Console.WriteLine($"\nDługość kolejki {mainQueue.ID}: {l:00}");
 
-            Console.WriteLine("\nWizualizacja kolejki:");
-            Console.WriteLine(mainQueue.GetVisualRepresentation());
+            Console.Write("\nKolejki:");
+            foreach (PatientQueue queue in queues)
+            {
+                Console.Write($"\nKolejka {queue.ID}: ");
+                Console.Write(queue.GetVisualRepresentation());
+            }
 
-            Console.WriteLine("\nLekarze:");
+            Console.WriteLine("\n\nLekarze:");
             foreach (Doctor doctor in doctors)
             {
                 string doctorState;
@@ -72,12 +78,12 @@ namespace ClinicQueueSimulation
         {
             Console.WriteLine("\nDane symulacji:");
 
-            Console.WriteLine($"\nŚrednia liczba pacjentów w kolejce: {queueLengthHistory.Average()}");
+            Console.WriteLine($"Średnia liczba pacjentów w kolejce {mainQueue.ID}: {mainQueueLengthHistory.Average()}");
 
             Console.WriteLine("\nStatystyki lekarzy:");
             foreach (Doctor doctor in doctors)
             {
-                Console.WriteLine($"Lekarz {doctor.ID}, wyleczono {doctor.HealedPatients.Count} pacjentów");
+                Console.WriteLine($"Lekarz {doctor.ID}, obsłużono {doctor.HealedPatients.Count} pacjentów");
             }
 
             // Writing to csv

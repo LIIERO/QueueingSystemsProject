@@ -19,7 +19,7 @@ namespace ClinicQueueSimulation
         public static event PatientEvent? AddPatientToQueue;
         public static event PatientEvent? RemovePatientFromQueue;
 
-        public delegate void DoctorEvent(Doctor doctor, int[] queueIDlist); // Z których kolejek lekarz może poprosić pacjenta
+        public delegate void DoctorEvent(Doctor doctor, int queueID); // Z której kolejki dany lekarz może poprosić pacjenta
         public static event DoctorEvent? RequestPatient;
 
         public static void InvokeStartSimulationEvent() { StartSimulation?.Invoke(); }
@@ -27,6 +27,6 @@ namespace ClinicQueueSimulation
         public static void InvokeUpdateRealTimeObjectsEvent(double delta) { UpdateRealTimeObjects?.Invoke(delta); }
         public static void InvokeAddPatientToQueueEvent(Patient patient, int queueID) { AddPatientToQueue?.Invoke(patient, queueID); }
         public static void InvokeRemovePatientFromQueueEvent(Patient patient, int queueID) { RemovePatientFromQueue?.Invoke(patient, queueID); }
-        public static void InvokeRequestPatientEvent(Doctor doctor, int[] queueIDlist) { RequestPatient?.Invoke(doctor, queueIDlist); }
+        public static void InvokeRequestPatientEvent(Doctor doctor, int queueID) { RequestPatient?.Invoke(doctor, queueID); }
     }
 }

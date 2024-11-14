@@ -9,21 +9,21 @@ namespace ClinicQueueSimulation
     internal class PatientGenerator : RealTimeObject
     {
         public uint ID { get; private set; }
-        public int TargetQueueID { get; private set; } // Which queue does the generator put patients to?
         public double TimeBetweenAttempts { get; private set; }
         public int PercentageChanceEachAttempt { get; private set; }
+        public int[][] AvailablePatientClasses { get; private set; }
         public List<Patient> GeneratedPatients { get; private set; } = new();
 
         private double attemptTimer = 0.0;
 
         private Random randomizer = new Random();
 
-        public PatientGenerator(uint id, int targetQueueID, double timeBetweenAttempts, int percentageChanceEachAttempt) : base()
+        public PatientGenerator(uint id, double timeBetweenAttempts, int percentageChanceEachAttempt, int[][] availablePatientClasses) : base()
         {
             ID = id;
-            TargetQueueID = targetQueueID;
             TimeBetweenAttempts = timeBetweenAttempts;
             PercentageChanceEachAttempt = percentageChanceEachAttempt;
+            AvailablePatientClasses = availablePatientClasses;
         }
 
         protected override void Update(double delta)
@@ -37,9 +37,11 @@ namespace ClinicQueueSimulation
                 if (randomizer.Next(0, 100) < PercentageChanceEachAttempt)
                 {
                     PatientPriority priority = (PatientPriority)randomizer.Next(0, Constants.highestPatientPriority + 1);
-                    Patient newPatient = new(priority);
+                    int[] patientClass = AvailablePatientClasses[randomizer.Next(0, AvailablePatientClasses.Length)];
+                    Patient newPatient = new(priority, patientClass);
                     GeneratedPatients.Add(newPatient);
-                    EventManager.InvokeAddPatientToQueueEvent(newPatient, TargetQueueID);
+
+                    newPatient.MoveToNextQueue();
                 }
             }
 
