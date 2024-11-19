@@ -10,6 +10,7 @@ namespace ClinicQueueSimulation
     internal class PatientQueue : RealTimeObject
     {
         public int ID { get; private set; }
+        public bool IsPriorityBased { get; private set; }
         public List<Patient> PatientList { get; private set; } = new(); // List of patients in order of appearence
 
         private Dictionary<PatientPriority, List<Patient>> patients = new(); // Patients sorted by priority
@@ -18,12 +19,14 @@ namespace ClinicQueueSimulation
         private Random random = new Random();
 
 
-        public PatientQueue(int id)
+        public PatientQueue(int id, bool isPriorityBased)
         {
             ID = id;
+            IsPriorityBased = isPriorityBased;
             EventManager.AddPatientToQueue += AddPatient;
             EventManager.RemovePatientFromQueue += RemovePatient;
             EventManager.RequestPatient += AddDoctor;
+            IsPriorityBased = isPriorityBased;
         }
 
         ~PatientQueue()
@@ -61,7 +64,19 @@ namespace ClinicQueueSimulation
 
         public Patient? RemoveTopPatient() // Removes the top patient that wants to go to specified doctor
         {
-            // Going from highest priority to lowest
+            // If queue is not priority based we remove the earliest patient
+            if (!IsPriorityBased)
+            {
+                if (PatientList.Count <= 0) return null;
+
+                Patient nextPatient = PatientList[0];
+                PatientList.RemoveAt(0);
+                patients[nextPatient.Priority].Remove(nextPatient);
+
+                return nextPatient;
+            }
+
+            // If it is priority based, we are going from highest priority to lowest
             for (int prio = Constants.highestPatientPriority; prio >= 0; prio--)
             {
                 PatientPriority priority = (PatientPriority)prio;

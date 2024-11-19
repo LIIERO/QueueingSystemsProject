@@ -44,7 +44,7 @@ namespace ClinicQueueSimulation
                 NOPatientsCured++;
                 HealedPatients.Add(CurrentPatient);
 
-                CurrentPatient.MoveToNextQueue();
+                CurrentPatient.MoveToNextSystem();
             }    
             else throw new NullException();
 

@@ -11,14 +11,14 @@ namespace ClinicQueueSimulation
         public uint ID { get; private set; }
         public double TimeBetweenAttempts { get; private set; }
         public int PercentageChanceEachAttempt { get; private set; }
-        public int[][] AvailablePatientClasses { get; private set; }
+        public List<int[][]> AvailablePatientClasses { get; private set; }
         public List<Patient> GeneratedPatients { get; private set; } = new();
 
         private double attemptTimer = 0.0;
 
         private Random randomizer = new Random();
 
-        public PatientGenerator(uint id, double timeBetweenAttempts, int percentageChanceEachAttempt, int[][] availablePatientClasses) : base()
+        public PatientGenerator(uint id, double timeBetweenAttempts, int percentageChanceEachAttempt, List<int[][]> availablePatientClasses) : base()
         {
             ID = id;
             TimeBetweenAttempts = timeBetweenAttempts;
@@ -37,11 +37,11 @@ namespace ClinicQueueSimulation
                 if (randomizer.Next(0, 100) < PercentageChanceEachAttempt)
                 {
                     PatientPriority priority = (PatientPriority)randomizer.Next(0, Constants.highestPatientPriority + 1);
-                    int[] patientClass = AvailablePatientClasses[randomizer.Next(0, AvailablePatientClasses.Length)];
+                    int[][] patientClass = AvailablePatientClasses[randomizer.Next(0, AvailablePatientClasses.Count)];
                     Patient newPatient = new(priority, patientClass);
                     GeneratedPatients.Add(newPatient);
 
-                    newPatient.MoveToNextQueue();
+                    newPatient.MoveToFirstSystem();
                 }
             }
 

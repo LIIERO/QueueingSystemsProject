@@ -12,20 +12,25 @@ namespace ClinicQueueSimulation
     {
         public static int NoPatients { get; private set; } = 0;
         private static int nextId = 0;
+        private const int firstSystem = 0;
 
         public int ID { get; private set; }
+        public int CurrentSystemID { get; private set; } // Every patient starts with the same one - firstQueue
         public double TimeSpentInSystem { get; private set; } = 0.0;
         public double TimeSpentInQueue { get; private set; } = 0.0;
         public bool IsInQueue { get; set; } = true;
         public bool IsHealed { get; private set; } = false;
         public PatientPriority Priority { get; set; } // The priority may change during the simulation
-        public int[] ClassPath { get; private set; } // The path of queues the patient must take
+        public int[][] ClassMatrix { get; private set; } // The path of systems and probabilities
 
-        public Patient(PatientPriority priority, int[] classPath)
+        private Random randomizer = new Random();
+
+        public Patient(PatientPriority priority, int[][] classMatrix)
         {
+            CurrentSystemID = firstSystem;
             ID = nextId;
             Priority = priority;
-            ClassPath = classPath;
+            ClassMatrix = classMatrix;
             NoPatients++;
             nextId++;
         }
@@ -40,30 +45,48 @@ namespace ClinicQueueSimulation
             if (IsInQueue) TimeSpentInQueue += delta;
         }
 
-        public int? GetNextRequiredQueue()
+        private int? GetNextRequiredSystem()
         {
-            if (ClassPath.Length == 0) return null;
-            return ClassPath[0];
+            /*if (ClassMatrix.Length == 0) return null;
+            return ClassMatrix[0];*/
+
+            int r = randomizer.Next(0, 100);
+
+            int[] probabilities = ClassMatrix[CurrentSystemID];
+            int probSum = 0;
+
+            for (int nextQueue = 0; nextQueue < probabilities.Length; nextQueue++)
+            {
+                probSum += probabilities[nextQueue];
+                if (r < probSum)
+                    return nextQueue;
+            }
+            return null;
         }
 
-        private void RemoveNextRequiredQueue()
+        /*private void RemoveNextRequiredQueue()
         {
-            var classPathList = new List<int>(ClassPath);
+            var classPathList = new List<int>(ClassMatrix);
             classPathList.RemoveAt(0);
-            ClassPath = classPathList.ToArray();
+            ClassMatrix = classPathList.ToArray();
+        }*/
+
+        public void MoveToFirstSystem()
+        {
+            EventManager.InvokeAddPatientToQueueEvent(this, firstSystem);
         }
 
-        public void MoveToNextQueue()
+        public void MoveToNextSystem()
         {
-            int? nextQueue = GetNextRequiredQueue();
-            if (nextQueue == null)
+            int? nextSystem = GetNextRequiredSystem();
+            if (nextSystem == null)
             {
                 IsHealed = true;
             }
             else
             {
-                RemoveNextRequiredQueue();
-                EventManager.InvokeAddPatientToQueueEvent(this, (int)nextQueue);
+                CurrentSystemID = (int)nextSystem;
+                EventManager.InvokeAddPatientToQueueEvent(this, (int)nextSystem);
             }
         }
 
