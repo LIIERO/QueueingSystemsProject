@@ -10,6 +10,7 @@ namespace ClinicQueueSimulation
     internal class PatientQueue : RealTimeObject
     {
         public int ID { get; private set; }
+        public string Name { get; private set; }
         public bool IsPriorityBased { get; private set; }
         public List<Patient> PatientList { get; private set; } = new(); // List of patients in order of appearence
 
@@ -18,10 +19,12 @@ namespace ClinicQueueSimulation
         private List<Doctor> requestingDoctors = new();
         private Random random = new Random();
 
+        public Doctor[] AssignedDoctors { get; set; } // For display only
 
-        public PatientQueue(int id, bool isPriorityBased)
+        public PatientQueue(int id, string systemName, bool isPriorityBased)
         {
             ID = id;
+            Name = systemName;
             IsPriorityBased = isPriorityBased;
             EventManager.AddPatientToQueue += AddPatient;
             EventManager.RemovePatientFromQueue += RemovePatient;
@@ -123,16 +126,27 @@ namespace ClinicQueueSimulation
             return PatientList.Count;
         }
 
-        public string GetVisualRepresentation()
+        public void PrintVisualRepresentation()
         {
-            StringBuilder sb = new();
+            //StringBuilder sb = new();
             int l = GetQueueLength();
             for (int i = 0; i < Constants.maxQueueLength; i++)
             {
-                if (i < l) sb.Append((int)PatientList[i].Priority);
-                else sb.Append('_');
+                if (i < l)
+                {
+                    Console.ForegroundColor = GlobalUtils.PatientClassToColor(PatientList[i].ClassID);
+                    //sb.Append((int)PatientList[i].Priority);
+                    Console.Write((int)PatientList[i].Priority);
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.White;
+                    //sb.Append('_');
+                    Console.Write('_');
+                } 
             }
-            return sb.ToString();
+            Console.ForegroundColor = ConsoleColor.White;
+            //return sb.ToString();
         }
     }
 }

@@ -11,14 +11,14 @@ namespace ClinicQueueSimulation
         public uint ID { get; private set; }
         public double TimeBetweenAttempts { get; private set; }
         public int PercentageChanceEachAttempt { get; private set; }
-        public List<int[][]> AvailablePatientClasses { get; private set; }
+        public List<PatientClass> AvailablePatientClasses { get; private set; }
         public List<Patient> GeneratedPatients { get; private set; } = new();
 
         private double attemptTimer = 0.0;
 
         private Random randomizer = new Random();
 
-        public PatientGenerator(uint id, double timeBetweenAttempts, int percentageChanceEachAttempt, List<int[][]> availablePatientClasses) : base()
+        public PatientGenerator(uint id, double timeBetweenAttempts, int percentageChanceEachAttempt, List<PatientClass> availablePatientClasses) : base()
         {
             ID = id;
             TimeBetweenAttempts = timeBetweenAttempts;
@@ -36,9 +36,8 @@ namespace ClinicQueueSimulation
 
                 if (randomizer.Next(0, 100) < PercentageChanceEachAttempt)
                 {
-                    PatientPriority priority = (PatientPriority)randomizer.Next(0, Constants.highestPatientPriority + 1);
-                    int[][] patientClass = AvailablePatientClasses[randomizer.Next(0, AvailablePatientClasses.Count)];
-                    Patient newPatient = new(priority, patientClass);
+                    Patient newPatient = GetRandomPatient();
+
                     GeneratedPatients.Add(newPatient);
 
                     newPatient.MoveToFirstSystem();
@@ -46,6 +45,22 @@ namespace ClinicQueueSimulation
             }
 
             attemptTimer -= delta;
+        }
+
+        private Patient GetRandomPatient()
+        {
+            int[] classProbabilities = new int[AvailablePatientClasses.Count];
+            for (int i = 0; i < classProbabilities.Length; i++)
+            {
+                classProbabilities[i] = AvailablePatientClasses[i].ClassProbability;
+            }
+            int? whichClass = GlobalUtils.GetIndexByProbability(classProbabilities) ?? throw new WrongProbabilityException();
+            PatientClass chosenClass = AvailablePatientClasses[(int)whichClass];
+
+            int? prio = GlobalUtils.GetIndexByProbability(chosenClass.PriorityProbabilities) ?? throw new WrongProbabilityException();
+            PatientPriority priority = (PatientPriority)prio;
+
+            return new Patient(chosenClass.ClassID, priority, chosenClass.MovementProbabilities);
         }
     }
 }

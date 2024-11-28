@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,15 +21,17 @@ namespace ClinicQueueSimulation
         public double TimeSpentInQueue { get; private set; } = 0.0;
         public bool IsInQueue { get; set; } = true;
         public bool IsHealed { get; private set; } = false;
+        public PatientClassID ClassID { get; private set; }
         public PatientPriority Priority { get; set; } // The priority may change during the simulation
         public int[][] ClassMatrix { get; private set; } // The path of systems and probabilities
 
-        private Random randomizer = new Random();
+        
 
-        public Patient(PatientPriority priority, int[][] classMatrix)
+        public Patient(PatientClassID classID, PatientPriority priority, int[][] classMatrix)
         {
             CurrentSystemID = firstSystem;
             ID = nextId;
+            ClassID = classID;
             Priority = priority;
             ClassMatrix = classMatrix;
             NoPatients++;
@@ -47,29 +50,9 @@ namespace ClinicQueueSimulation
 
         private int? GetNextRequiredSystem()
         {
-            /*if (ClassMatrix.Length == 0) return null;
-            return ClassMatrix[0];*/
-
-            int r = randomizer.Next(0, 100);
-
             int[] probabilities = ClassMatrix[CurrentSystemID];
-            int probSum = 0;
-
-            for (int nextQueue = 0; nextQueue < probabilities.Length; nextQueue++)
-            {
-                probSum += probabilities[nextQueue];
-                if (r < probSum)
-                    return nextQueue;
-            }
-            return null;
+            return GlobalUtils.GetIndexByProbability(probabilities);
         }
-
-        /*private void RemoveNextRequiredQueue()
-        {
-            var classPathList = new List<int>(ClassMatrix);
-            classPathList.RemoveAt(0);
-            ClassMatrix = classPathList.ToArray();
-        }*/
 
         public void MoveToFirstSystem()
         {
@@ -89,6 +72,12 @@ namespace ClinicQueueSimulation
                 EventManager.InvokeAddPatientToQueueEvent(this, (int)nextSystem);
             }
         }
+
+        /*public void Write()
+        {
+
+            (int)doctor.CurrentPatient.Priority
+        }*/
 
         ~Patient() { NoPatients--; }
     }

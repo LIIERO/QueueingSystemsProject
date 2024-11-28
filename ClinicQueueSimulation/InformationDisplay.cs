@@ -51,22 +51,31 @@ namespace ClinicQueueSimulation
 
             int l = mainQueue.GetQueueLength();
             mainQueueLengthHistory.Add(l);
-            Console.WriteLine($"\nDługość kolejki {mainQueue.ID}: {l:00}");
+            //Console.WriteLine($"\nDługość kolejki {mainQueue.ID}: {l:00}");
 
-            Console.Write("\nKolejki:");
+            Console.Write("\nSystemy kolejkowe:");
             foreach (PatientQueue queue in queues)
             {
-                Console.Write($"\nKolejka {queue.ID}: ");
-                Console.Write(queue.GetVisualRepresentation());
-            }
-
-            Console.WriteLine("\n\nLekarze:");
-            foreach (Doctor doctor in doctors)
-            {
-                string doctorState;
-                if (doctor.CurrentPatient != null) doctorState = "Leczy pacjenta o priorytecie " + (int)doctor.CurrentPatient.Priority;
-                else doctorState = "Czeka...                                 ";
-                Console.WriteLine($"Lekarz {doctor.ID}, czas obsługi: {doctor.ServiceTime}s, stan: {doctorState}");
+                Console.Write($"\nKolejka {queue.Name}: ");
+                queue.PrintVisualRepresentation();
+                Console.WriteLine();
+                foreach (Doctor doctor in queue.AssignedDoctors)
+                {
+                    string doctorState;
+                    if (doctor.CurrentPatient != null)
+                    {
+                        Console.ForegroundColor = GlobalUtils.PatientClassToColor(doctor.CurrentPatient.ClassID);
+                        doctorState = "Leczy pacjenta o priorytecie " + (int)doctor.CurrentPatient.Priority;
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.White;
+                        doctorState = "Czeka...                                 ";
+                    }
+                    
+                    Console.WriteLine($"Lekarz {doctor.ID}, czas obsługi: {doctor.ServiceTime}s, stan: {doctorState}");
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
             }
 
             // Writing data to CSV       
