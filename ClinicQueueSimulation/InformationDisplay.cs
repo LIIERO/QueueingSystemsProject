@@ -22,6 +22,8 @@ namespace ClinicQueueSimulation
         private List<int> mainQueueLengthHistory = new();
         private StringBuilder simCSV = new();
 
+        private Thread consoleUpdateThread;
+
         public InformationDisplay(Simulation simulation, PatientGenerator generator, PatientQueue[] queues, Doctor[] doctors)
         {
             this.simulation = simulation;
@@ -32,8 +34,14 @@ namespace ClinicQueueSimulation
 
             EventManager.StopSimulation += DisplaySimulationData;
 
-            string headerLine = $"Time [s],Queue {mainQueue.ID} length";
-            simCSV.AppendLine(headerLine);
+            StringBuilder headerLine = new();
+            headerLine.Append("Time [s]");
+            foreach (PatientQueue q in queues)
+            {
+                headerLine.Append(',');
+                headerLine.Append(q.Name);
+            }
+            simCSV.AppendLine(headerLine.ToString());
         }
 
         ~InformationDisplay()
@@ -45,12 +53,29 @@ namespace ClinicQueueSimulation
         {
             base.Update(delta);
 
+            consoleUpdateThread = new Thread(new ThreadStart(UpdateConsole));
+            consoleUpdateThread.Start();
+
+            // Writing data to CSV
+            StringBuilder queueLine = new();
+            queueLine.Append(simulation.CurrentTime.ToString(CultureInfo.InvariantCulture));
+            foreach (PatientQueue q in queues)
+            {
+                queueLine.Append(',');
+                queueLine.Append(q.GetQueueLength().ToString());
+            }
+            simCSV.AppendLine(queueLine.ToString());
+
+            consoleUpdateThread.Join();
+        }
+
+        private void UpdateConsole()
+        {
             Console.SetCursorPosition(0, 0);
 
             Console.WriteLine("Czas symulacji: {0:0.###}", simulation.CurrentTime);
 
-            int l = mainQueue.GetQueueLength();
-            mainQueueLengthHistory.Add(l);
+            //mainQueueLengthHistory.Add(mainQueue.GetQueueLength());
             //Console.WriteLine($"\nDługość kolejki {mainQueue.ID}: {l:00}");
 
             Console.Write("\nSystemy kolejkowe:");
@@ -72,22 +97,23 @@ namespace ClinicQueueSimulation
                         Console.ForegroundColor = ConsoleColor.White;
                         doctorState = "Czeka...                                 ";
                     }
-                    
+
                     Console.WriteLine($"Lekarz {doctor.ID}, czas obsługi: {doctor.ServiceTime}s, stan: {doctorState}");
                     Console.ForegroundColor = ConsoleColor.White;
                 }
             }
-
-            // Writing data to CSV       
-            var newLine = string.Format("{0},{1}", simulation.CurrentTime.ToString(CultureInfo.InvariantCulture), mainQueue.GetQueueLength().ToString());
-            simCSV.AppendLine(newLine);
         }
 
         private void DisplaySimulationData()
         {
+            consoleUpdateThread.Join();
+
+            Console.Clear();
+            Console.SetCursorPosition(0, 0);
+
             Console.WriteLine("\nDane symulacji:");
 
-            Console.WriteLine($"Średnia liczba pacjentów w kolejce {mainQueue.ID}: {mainQueueLengthHistory.Average()}");
+            //Console.WriteLine($"Średnia liczba pacjentów w kolejce {mainQueue.ID}: {mainQueueLengthHistory.Average()}");
 
             Console.WriteLine("\nStatystyki lekarzy:");
             foreach (Doctor doctor in doctors)
@@ -99,11 +125,11 @@ namespace ClinicQueueSimulation
             File.WriteAllText(simDataPath, simCSV.ToString());
 
             StringBuilder patientCSV = new();
-            string headerLine = "ID,Priority,Time spent in system [s],Time spent in queue [s]";
+            string headerLine = "ID,Class name,Priority,Time spent in system [s],Time spent in queue [s]";
             patientCSV.AppendLine(headerLine);
             foreach (Patient patient in generator.GeneratedPatients)
             {
-                var newLine = string.Format("{0},{1},{2},{3}", patient.ID.ToString(), patient.Priority.ToString(), patient.TimeSpentInSystem.ToString(CultureInfo.InvariantCulture), patient.TimeSpentInQueue.ToString(CultureInfo.InvariantCulture));
+                var newLine = string.Format("{0},{1},{2},{3},{4}", patient.ID.ToString(), patient.ClassID, patient.Priority.ToString(), patient.TimeSpentInSystem.ToString(CultureInfo.InvariantCulture), patient.TimeSpentInQueue.ToString(CultureInfo.InvariantCulture));
                 patientCSV.AppendLine(newLine);
             }
             File.WriteAllText(patientDataPath, patientCSV.ToString());

@@ -10,6 +10,7 @@ namespace ClinicQueueSimulation
     {
         public delegate void SimulationEvent();
         public static event SimulationEvent? StartSimulation;
+        public static event SimulationEvent? StopGeneratingPatients;
         public static event SimulationEvent? StopSimulation;
 
         public delegate void TimedEvent(double time);
@@ -23,6 +24,7 @@ namespace ClinicQueueSimulation
         public static event DoctorEvent? RequestPatient;
 
         public static void InvokeStartSimulationEvent() { StartSimulation?.Invoke(); }
+        public static void InvokeStopGeneratingPatientsEvent() { StopGeneratingPatients?.Invoke(); }
         public static void InvokeStopSimulationEvent() { StopSimulation?.Invoke(); }
         public static void InvokeUpdateRealTimeObjectsEvent(double delta) { UpdateRealTimeObjects?.Invoke(delta); }
         public static void InvokeAddPatientToQueueEvent(Patient patient, int queueID) { AddPatientToQueue?.Invoke(patient, queueID); }

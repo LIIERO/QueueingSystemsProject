@@ -7,7 +7,7 @@ namespace ClinicQueueSimulation
         
         static void Main(string[] args)
         {
-            Simulation sim = new(simulationUpdateTime: 0.05, simulationLength: 20.0);
+            Simulation sim = new(simulationUpdateTime: 0.05, simulationLength: 10.0);
 
             Doctor[] doctors = [ // 1 sekunda - 15 minut
                 new(id: 0, serviceTime: 0.1, inputQueueID: 0),
@@ -126,11 +126,13 @@ namespace ClinicQueueSimulation
 
             Console.ReadKey();
 
-            if (sim.Running)
-            { 
-                EventManager.InvokeStopSimulationEvent();
+            if (sim.Generating)
+            {
+                EventManager.InvokeStopGeneratingPatientsEvent();
                 Console.ReadKey();
             }
+
+            EventManager.InvokeStopSimulationEvent();
         }
     }
 }

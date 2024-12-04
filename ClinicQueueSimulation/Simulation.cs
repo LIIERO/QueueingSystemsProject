@@ -13,6 +13,7 @@ namespace ClinicQueueSimulation
         public double SimulationLength { get; private set; }
         public double CurrentTime { get; private set; } = 0.0;
         public bool Running { get; private set; } = false;
+        public bool Generating { get; private set; } = false;
 
         private PeriodicTimer? periodicTimer = null;
 
@@ -34,6 +35,8 @@ namespace ClinicQueueSimulation
         public void Start()
         {
             Running = true;
+            Generating = true;
+
             RunInBackground(TimeSpan.FromSeconds(SimulationUpdateTime), RunUpdate);
         }
 
@@ -57,14 +60,15 @@ namespace ClinicQueueSimulation
         {
             if (!Running) return;
 
-            if (CurrentTime >= SimulationLength)
-            {
-                EventManager.InvokeStopSimulationEvent();
-                return;
-            }
-
             CurrentTime += SimulationUpdateTime;
             EventManager.InvokeUpdateRealTimeObjectsEvent(SimulationUpdateTime);
+
+            if (Generating && CurrentTime >= SimulationLength)
+            {
+                EventManager.InvokeStopGeneratingPatientsEvent();
+                Generating = false;
+                return;
+            }
         }
     }
 }

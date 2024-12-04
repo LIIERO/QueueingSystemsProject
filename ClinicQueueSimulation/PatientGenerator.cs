@@ -9,6 +9,7 @@ namespace ClinicQueueSimulation
     internal class PatientGenerator : RealTimeObject
     {
         public uint ID { get; private set; }
+        public bool IsGenerating { get; private set; }
         public double TimeBetweenAttempts { get; private set; }
         public int PercentageChanceEachAttempt { get; private set; }
         public List<PatientClass> AvailablePatientClasses { get; private set; }
@@ -24,11 +25,22 @@ namespace ClinicQueueSimulation
             TimeBetweenAttempts = timeBetweenAttempts;
             PercentageChanceEachAttempt = percentageChanceEachAttempt;
             AvailablePatientClasses = availablePatientClasses;
+
+            EventManager.StopGeneratingPatients += StopGenerating;
+
+            IsGenerating = true;
+        }
+
+        private void StopGenerating()
+        {
+            IsGenerating = false;
         }
 
         protected override void Update(double delta)
         {
             base.Update(delta);
+
+            if (!IsGenerating) return;
 
             if (attemptTimer <= 0.0)
             {
@@ -61,6 +73,11 @@ namespace ClinicQueueSimulation
             PatientPriority priority = (PatientPriority)prio;
 
             return new Patient(chosenClass.ClassID, priority, chosenClass.MovementProbabilities);
+        }
+
+        ~PatientGenerator()
+        {
+            EventManager.StopGeneratingPatients -= StopGenerating;
         }
     }
 }
