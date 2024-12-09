@@ -8,6 +8,8 @@ namespace ClinicQueueSimulation
 {
     internal static class EventManager
     {
+        public static int NoPatientAddedToSevenQueue = 0;
+
         public delegate void SimulationEvent();
         public static event SimulationEvent? StartSimulation;
         public static event SimulationEvent? StopGeneratingPatients;
@@ -27,7 +29,10 @@ namespace ClinicQueueSimulation
         public static void InvokeStopGeneratingPatientsEvent() { StopGeneratingPatients?.Invoke(); }
         public static void InvokeStopSimulationEvent() { StopSimulation?.Invoke(); }
         public static void InvokeUpdateRealTimeObjectsEvent(double delta) { UpdateRealTimeObjects?.Invoke(delta); }
-        public static void InvokeAddPatientToQueueEvent(Patient patient, int queueID) { AddPatientToQueue?.Invoke(patient, queueID); }
+        public static void InvokeAddPatientToQueueEvent(Patient patient, int queueID) { 
+            AddPatientToQueue.Invoke(patient, queueID);
+            if (queueID == 7) NoPatientAddedToSevenQueue++;
+        }
         public static void InvokeRemovePatientFromQueueEvent(Patient patient, int queueID) { RemovePatientFromQueue?.Invoke(patient, queueID); }
         public static void InvokeRequestPatientEvent(Doctor doctor, int queueID) { RequestPatient?.Invoke(doctor, queueID); }
     }

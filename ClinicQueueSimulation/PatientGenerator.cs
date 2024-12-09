@@ -42,7 +42,7 @@ namespace ClinicQueueSimulation
 
             if (!IsGenerating) return;
 
-            if (attemptTimer <= 0.0)
+            if (attemptTimer <= 0.0001)
             {
                 attemptTimer = TimeBetweenAttempts;
 

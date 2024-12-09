@@ -12,6 +12,7 @@ namespace ClinicQueueSimulation
         public double ServiceTime { get; private set; }
         public int InputQueueID { get; private set; } // From which queue does the doctor take patients from?
         //public int TargetQueueID { get; private set; } // Which queue does the doctor put "healed" patients to?
+        public string InputSystemName { get; set; }
         public int NOPatientsCured { get; private set; } = 0;
         public bool IsWorking { get; private set; } = false;
         public bool IsMissingPatients { get; private set; } = true; // Nie ma pacjentów w kolejce do wzięcia
@@ -43,7 +44,6 @@ namespace ClinicQueueSimulation
             {
                 NOPatientsCured++;
                 HealedPatients.Add(CurrentPatient);
-
                 CurrentPatient.MoveToNextSystem();
             }    
             else throw new NullException();
@@ -64,6 +64,8 @@ namespace ClinicQueueSimulation
             IsMissingPatients = false;
             IsWorking = true;
             CurrentPatient = patient;
+
+            CurrentPatient.LatestDoctorID = ID;
 
             Task.Delay((int)(1000 * ServiceTime)).ContinueWith(t => CurePatient());
         }

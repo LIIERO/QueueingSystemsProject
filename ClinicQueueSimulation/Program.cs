@@ -7,30 +7,31 @@ namespace ClinicQueueSimulation
         
         static void Main(string[] args)
         {
-            Simulation sim = new(simulationUpdateTime: 0.05, simulationLength: 10.0);
+            Simulation sim = new(simulationUpdateTime: 0.05, simulationLength: 26.0); // 26 sekund = 6.5 godzin
 
             Doctor[] doctors = [ // 1 sekunda - 15 minut
                 new(id: 0, serviceTime: 0.1, inputQueueID: 0),
-                new(id: 1, serviceTime: 1.0, inputQueueID: 1),
-                new(id: 2, serviceTime: 1.0, inputQueueID: 2),
-                new(id: 3, serviceTime: 1.0, inputQueueID: 2), // Drugi lekarz, który bierze z tej samej kolejki = kolejny kanał obsługi tej kolejki
-                new(id: 4, serviceTime: 1.0, inputQueueID: 2),
-                new(id: 5, serviceTime: 1.0, inputQueueID: 3),
-                new(id: 6, serviceTime: 1.2, inputQueueID: 4),
-                new(id: 7, serviceTime: 1.0, inputQueueID: 5),
-                new(id: 8, serviceTime: 5.0, inputQueueID: 6),
-                new(id: 9, serviceTime: 0.1, inputQueueID: 7),
+                new(id: 10, serviceTime: 1.1, inputQueueID: 1),
+                new(id: 11, serviceTime: 1.1, inputQueueID: 1), // Drugi lekarz, który bierze z tej samej kolejki = kolejny kanał obsługi tej kolejki
+                new(id: 20, serviceTime: 1.0, inputQueueID: 2),
+                new(id: 21, serviceTime: 1.0, inputQueueID: 2),
+                new(id: 22, serviceTime: 1.0, inputQueueID: 2),
+                new(id: 30, serviceTime: 1.0, inputQueueID: 3),
+                new(id: 40, serviceTime: 1.2, inputQueueID: 4),
+                new(id: 50, serviceTime: 1.0, inputQueueID: 5),
+                new(id: 60, serviceTime: 5.0, inputQueueID: 6),
+                new(id: 70, serviceTime: 0.1, inputQueueID: 7),
             ];
 
             PatientQueue[] systems = [
-                new(id: 0, "Rejestracja", isPriorityBased: false) {AssignedDoctors = [doctors[0]]}, // system startowy
-                new(id: 1, "Pediatra", isPriorityBased: false) {AssignedDoctors = [doctors[1]]},
-                new(id: 2, "Internista", isPriorityBased: true) {AssignedDoctors = [doctors[2], doctors[3], doctors[4]]},
-                new(id: 3, "Kardiolog", isPriorityBased: true) {AssignedDoctors = [doctors[5]]},
-                new(id: 4, "Dermatolog", isPriorityBased: true) {AssignedDoctors = [doctors[6]]},
-                new(id: 5, "Laryngolog", isPriorityBased: true) {AssignedDoctors = [doctors[7]]},
-                new(id: 6, "Chirurg", isPriorityBased: false) {AssignedDoctors = [doctors[8]]},
-                new(id: 7, "Kasa", isPriorityBased: false) {AssignedDoctors = [doctors[9]]},
+                new(id: 0, "Rejestracja", isPriorityBased: false, assignedDoctors: [doctors[0]]), // system startowy
+                new(id: 1, "Pediatra", isPriorityBased: false, assignedDoctors: [doctors[1], doctors[2]]),
+                new(id: 2, "Internista", isPriorityBased: true, assignedDoctors: [doctors[3], doctors[4], doctors[5]]),
+                new(id: 3, "Kardiolog", isPriorityBased: true, assignedDoctors: [doctors[6]]),
+                new(id: 4, "Dermatolog", isPriorityBased: true, assignedDoctors: [doctors[7]]),
+                new(id: 5, "Laryngolog", isPriorityBased: true, assignedDoctors: [doctors[8]]),
+                new(id: 6, "Chirurg", isPriorityBased: false, assignedDoctors: [doctors[9]]),
+                new(id: 7, "Kasa", isPriorityBased: false, assignedDoctors: [doctors[10]]),
             ];
 
             List<PatientClass> patientClasses = new List<PatientClass>() // Ścieżki (możliwe klasy) pacjenta (macierze prawdopodobieństwa przejścia do danego systemu)
@@ -41,7 +42,7 @@ namespace ClinicQueueSimulation
                 {
                     ClassID = PatientClassID.Child,
 
-                    ClassProbability = 15,
+                    ClassProbability = 25,
 
                     MovementProbabilities = [
                     [ 0, 100, 0, 0, 0, 0, 0, 0 ], // Rejestracja 0
@@ -54,14 +55,14 @@ namespace ClinicQueueSimulation
                     [ 0, 0, 0, 0, 0, 0, 0, 0 ] // Kasa 7
                     ],
 
-                    PriorityProbabilities = [0, 0, 100]
+                    PriorityProbabilities = [0, 50, 50]
                 },
 
                 new PatientClass() // Dorosły
                 {
                     ClassID = PatientClassID.Adult,
 
-                    ClassProbability = 35,
+                    ClassProbability = 40,
 
                     MovementProbabilities = [
                     [ 0, 0, 55, 15, 15, 15, 0, 0 ], // Rejestracja 0
@@ -97,7 +98,7 @@ namespace ClinicQueueSimulation
                     PriorityProbabilities = [40, 40, 20]
                 },
 
-                new PatientClass() // Alergik
+                /*new PatientClass() // Alergik
                 {
                     ClassID = PatientClassID.Allergic,
 
@@ -115,10 +116,10 @@ namespace ClinicQueueSimulation
                     ],
 
                     PriorityProbabilities = [60, 25, 15]
-                }
+                }*/
             };
             
-            PatientGenerator generator1 = new(id: 0, timeBetweenAttempts: 0.05, percentageChanceEachAttempt: 50, availablePatientClasses: patientClasses);
+            PatientGenerator generator1 = new(id: 0, timeBetweenAttempts: 0.05, percentageChanceEachAttempt: 45, availablePatientClasses: patientClasses);
 
             InformationDisplay informationDisplay = new(sim, generator1, systems, doctors);
 

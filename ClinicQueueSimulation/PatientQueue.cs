@@ -19,9 +19,12 @@ namespace ClinicQueueSimulation
         private List<Doctor> requestingDoctors = new();
         private Random random = new Random();
 
-        public Doctor[] AssignedDoctors { get; set; } // For display only
+        public Doctor[] AssignedDoctors { get; private set; } // For display only
 
-        public PatientQueue(int id, string systemName, bool isPriorityBased)
+
+        public int HowManyAdded = 0;
+
+        public PatientQueue(int id, string systemName, bool isPriorityBased, Doctor[] assignedDoctors)
         {
             ID = id;
             Name = systemName;
@@ -30,6 +33,12 @@ namespace ClinicQueueSimulation
             EventManager.RemovePatientFromQueue += RemovePatient;
             EventManager.RequestPatient += AddDoctor;
             IsPriorityBased = isPriorityBased;
+
+            AssignedDoctors = assignedDoctors;
+            foreach (Doctor doctor in AssignedDoctors)
+            {
+                doctor.InputSystemName = systemName;
+            }
         }
 
         ~PatientQueue()
@@ -53,6 +62,8 @@ namespace ClinicQueueSimulation
         private void AddPatient(Patient patient, int queueID)
         {
             if (ID != queueID) return;
+
+            HowManyAdded++;
 
             patient.IsInQueue = true;
             PatientList.Add(patient);

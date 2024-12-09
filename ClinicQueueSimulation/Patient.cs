@@ -24,8 +24,9 @@ namespace ClinicQueueSimulation
         public PatientClassID ClassID { get; private set; }
         public PatientPriority Priority { get; set; } // The priority may change during the simulation
         public int[][] ClassMatrix { get; private set; } // The path of systems and probabilities
+        public int NoSystemsGoneThrough { get; private set; } = 0;
+        public int LatestDoctorID { get; set; }
 
-        
 
         public Patient(PatientClassID classID, PatientPriority priority, int[][] classMatrix)
         {
@@ -56,6 +57,7 @@ namespace ClinicQueueSimulation
 
         public void MoveToFirstSystem()
         {
+            NoSystemsGoneThrough++;
             EventManager.InvokeAddPatientToQueueEvent(this, firstSystem);
         }
 
@@ -68,8 +70,9 @@ namespace ClinicQueueSimulation
             }
             else
             {
+                NoSystemsGoneThrough++;
                 CurrentSystemID = (int)nextSystem;
-                EventManager.InvokeAddPatientToQueueEvent(this, (int)nextSystem);
+                EventManager.InvokeAddPatientToQueueEvent(this, CurrentSystemID);
             }
         }
 

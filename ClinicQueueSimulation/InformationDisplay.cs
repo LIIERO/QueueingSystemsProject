@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -73,7 +74,8 @@ namespace ClinicQueueSimulation
         {
             Console.SetCursorPosition(0, 0);
 
-            Console.WriteLine("Czas symulacji: {0:0.###}", simulation.CurrentTime);
+            TimeSpan span = new(0, (int)(simulation.CurrentTime * Constants.SimulationSecondsToRealTimeMinutes), 0);
+            Console.WriteLine("Czas symulacji: {0:0.00}       Rzeczywisty czas: {1:00} h {2:00} min", simulation.CurrentTime, span.Hours, span.Minutes);
 
             //mainQueueLengthHistory.Add(mainQueue.GetQueueLength());
             //Console.WriteLine($"\nDługość kolejki {mainQueue.ID}: {l:00}");
@@ -87,17 +89,20 @@ namespace ClinicQueueSimulation
                 foreach (Doctor doctor in queue.AssignedDoctors)
                 {
                     string doctorState;
-                    if (doctor.CurrentPatient != null)
-                    {
-                        Console.ForegroundColor = GlobalUtils.PatientClassToColor(doctor.CurrentPatient.ClassID);
-                        doctorState = "Leczy pacjenta o priorytecie " + (int)doctor.CurrentPatient.Priority;
-                    }
-                    else
+                    Patient? currentPatient = doctor.CurrentPatient;
+
+                    if (currentPatient == null)
                     {
                         Console.ForegroundColor = ConsoleColor.White;
                         doctorState = "Czeka...                                 ";
+                            
                     }
-
+                    else// lock(currentPatient)
+                    {
+                        Console.ForegroundColor = GlobalUtils.PatientClassToColor(currentPatient.ClassID);
+                        doctorState = "Leczy pacjenta o priorytecie " + (int)currentPatient.Priority;
+                    }
+                    
                     Console.WriteLine($"Lekarz {doctor.ID}, czas obsługi: {doctor.ServiceTime}s, stan: {doctorState}");
                     Console.ForegroundColor = ConsoleColor.White;
                 }
@@ -118,18 +123,24 @@ namespace ClinicQueueSimulation
             Console.WriteLine("\nStatystyki lekarzy:");
             foreach (Doctor doctor in doctors)
             {
-                Console.WriteLine($"Lekarz {doctor.ID}, obsłużono {doctor.HealedPatients.Count} pacjentów");
+                Console.WriteLine($"Lekarz {doctor.ID} - {doctor.InputSystemName}, obsłużono {doctor.HealedPatients.Count} pacjentów");
             }
+
+            foreach (PatientQueue q in queues) Console.WriteLine(q.GetQueueLength());
+            Console.WriteLine();
+            foreach (PatientQueue q in queues) Console.WriteLine(q.HowManyAdded);
+            Console.WriteLine();
+            Console.WriteLine(EventManager.NoPatientAddedToSevenQueue);
 
             // Writing to csv
             File.WriteAllText(simDataPath, simCSV.ToString());
 
             StringBuilder patientCSV = new();
-            string headerLine = "ID,Class name,Priority,Time spent in system [s],Time spent in queue [s]";
+            string headerLine = "ID,Class name,Priority,Time spent in system [s],Time spent in queue [s],Wyleczony,Był w tylu systemach";
             patientCSV.AppendLine(headerLine);
             foreach (Patient patient in generator.GeneratedPatients)
             {
-                var newLine = string.Format("{0},{1},{2},{3},{4}", patient.ID.ToString(), patient.ClassID, patient.Priority.ToString(), patient.TimeSpentInSystem.ToString(CultureInfo.InvariantCulture), patient.TimeSpentInQueue.ToString(CultureInfo.InvariantCulture));
+                var newLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8}", patient.ID.ToString(), patient.ClassID, patient.Priority.ToString(), patient.TimeSpentInSystem.ToString(CultureInfo.InvariantCulture), patient.TimeSpentInQueue.ToString(CultureInfo.InvariantCulture), patient.IsHealed, patient.NoSystemsGoneThrough, patient.LatestDoctorID, patient.CurrentSystemID);
                 patientCSV.AppendLine(newLine);
             }
             File.WriteAllText(patientDataPath, patientCSV.ToString());

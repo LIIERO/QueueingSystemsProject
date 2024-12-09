@@ -14,6 +14,8 @@ namespace ClinicQueueSimulation
         public const int highestPatientPriority = (int)PatientPriority.High;
 
         public const int maxQueueLength = 99;
+
+        public const int SimulationSecondsToRealTimeMinutes = 15;
     }
 
     public class NullException : Exception { }
@@ -34,6 +36,13 @@ namespace ClinicQueueSimulation
                 if (r < probSum)
                     return nextID;
             }
+
+            if (probSum != 0 && probSum != 100)
+            {
+                Console.WriteLine(probSum);
+                throw new Exception();
+            }
+
             return null;
         }
 
@@ -43,8 +52,7 @@ namespace ClinicQueueSimulation
             {
                 PatientClassID.Child => ConsoleColor.Green,
                 PatientClassID.Adult => ConsoleColor.Cyan,
-                PatientClassID.Elder => ConsoleColor.Yellow,
-                PatientClassID.Allergic => ConsoleColor.Magenta,
+                PatientClassID.Elder => ConsoleColor.Magenta,
                 _ => ConsoleColor.White,
             };
         }
