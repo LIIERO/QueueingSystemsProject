@@ -11,6 +11,8 @@ namespace ClinicQueueSimulation
 
     public static class Constants
     {
+        public const double simulationUpdateTime = 0.1; // To musi być na 0,1; można zmienić pod warunkiem zmian w walidacji średniego czasu między zgłoszeniami
+
         public const int highestPatientPriority = (int)PatientPriority.High;
 
         public const int maxQueueLength = 99;
@@ -56,5 +58,10 @@ namespace ClinicQueueSimulation
                 _ => ConsoleColor.White,
             };
         }
+
+        /*public static T GetInputFromKeyboard<T>()
+        {
+            T.Parse
+        }*/
     }
 }

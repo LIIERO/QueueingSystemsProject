@@ -23,6 +23,7 @@ namespace ClinicQueueSimulation
 
 
         public int HowManyAdded = 0;
+        public int HowManyRemoved = 0;
 
         public PatientQueue(int id, string systemName, bool isPriorityBased, Doctor[] assignedDoctors)
         {
@@ -34,11 +35,7 @@ namespace ClinicQueueSimulation
             EventManager.RequestPatient += AddDoctor;
             IsPriorityBased = isPriorityBased;
 
-            AssignedDoctors = assignedDoctors;
-            foreach (Doctor doctor in AssignedDoctors)
-            {
-                doctor.InputSystemName = systemName;
-            }
+            ReassignDoctors(assignedDoctors);
         }
 
         ~PatientQueue()
@@ -46,6 +43,15 @@ namespace ClinicQueueSimulation
             EventManager.AddPatientToQueue -= AddPatient;
             EventManager.RemovePatientFromQueue -= RemovePatient;
             EventManager.RequestPatient -= AddDoctor;
+        }
+
+        public void ReassignDoctors(Doctor[] doctors)
+        {
+            AssignedDoctors = doctors;
+            foreach (Doctor doctor in AssignedDoctors)
+            {
+                doctor.InputSystemName = Name;
+            }
         }
 
         protected override void Update(double delta)
@@ -87,6 +93,8 @@ namespace ClinicQueueSimulation
                 PatientList.RemoveAt(0);
                 patients[nextPatient.Priority].Remove(nextPatient);
 
+                HowManyRemoved++;
+
                 return nextPatient;
             }
 
@@ -103,6 +111,8 @@ namespace ClinicQueueSimulation
                 patients[priority].RemoveAt(0);
                 PatientList.Remove(nextPatient);
                 nextPatient.IsInQueue = false;
+
+                HowManyRemoved++;
 
                 return nextPatient;
             }
@@ -123,6 +133,8 @@ namespace ClinicQueueSimulation
             PatientList.Remove(patient);
 
             patient.IsInQueue = false;
+
+            HowManyRemoved++;
         }
 
         public void AddDoctor(Doctor doctor, int queueID)
