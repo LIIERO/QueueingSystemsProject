@@ -163,9 +163,9 @@ namespace ClinicQueueSimulation
                 }
                 else
                 {
-                    Console.ForegroundColor = ConsoleColor.White;
+                    //Console.ForegroundColor = ConsoleColor.White;
                     //sb.Append('_');
-                    Console.Write('_');
+                    Console.Write(' ');
                 } 
             }
             Console.ForegroundColor = ConsoleColor.White;

@@ -285,6 +285,9 @@ namespace ClinicQueueSimulation
                     system.ReassignDoctors(systemDoctors.ToArray());
                 }
 
+                foreach (Doctor d in doctors)
+                    d.Dispose();
+                
                 doctors = newDoctors.ToArray();
             }
 
@@ -294,10 +297,13 @@ namespace ClinicQueueSimulation
             {
                 Console.WriteLine($"{doctor.ID}; {doctor.ServiceTime}; {doctor.InputQueueID}");
             }
-
-
+            foreach (PatientQueue q in systems)
+            {
+                Console.WriteLine(q.AssignedDoctors.Length);
+            }
             Console.ReadKey();
             Console.Clear();*/
+            
 
             PatientGenerator generator1 = new(id: 0, timeBetweenAttempts: Constants.simulationUpdateTime, percentageChanceEachAttempt: probEachAttempt, availablePatientClasses: patientClasses);
 
@@ -314,6 +320,8 @@ namespace ClinicQueueSimulation
             }
 
             EventManager.InvokeStopSimulationEvent();
+
+            Console.ReadKey();
         }
     }
 }

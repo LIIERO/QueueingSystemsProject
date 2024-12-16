@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace ClinicQueueSimulation
 {
-    internal abstract class RealTimeObject
+    internal abstract class RealTimeObject : IDisposable
     {
+        private bool disposed = false;
         public RealTimeObject()
         {
             EventManager.UpdateRealTimeObjects += Update;
@@ -15,6 +16,15 @@ namespace ClinicQueueSimulation
 
         ~RealTimeObject()
         {
+            if (disposed) return;
+            disposed = true;
+            EventManager.UpdateRealTimeObjects -= Update;
+        }
+
+        public void Dispose()
+        {
+            if (disposed) return;
+            disposed = true;
             EventManager.UpdateRealTimeObjects -= Update;
         }
 

@@ -33,7 +33,7 @@ namespace ClinicQueueSimulation
 
             string sCurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
             simDataPath = Path.GetFullPath(Path.Combine(sCurrentDirectory, @"..\..\..\..\SimulationResults\simulationData.csv"));
-            patientDataPath = Path.GetFullPath(Path.Combine(sCurrentDirectory, @"..\..\..\..\SimulationResults\simulationData.csv"));
+            patientDataPath = Path.GetFullPath(Path.Combine(sCurrentDirectory, @"..\..\..\..\SimulationResults\patientData.csv"));
 
             this.simulation = simulation;
             this.generator = generator;
@@ -85,12 +85,11 @@ namespace ClinicQueueSimulation
 
             TimeSpan span = new(0, (int)(simulation.CurrentTime * Constants.SimulationSecondsToRealTimeMinutes), 0);
             string genStatus = simulation.Generating ? "Włączona" : "Wyłączona";
-            Console.WriteLine("Czas symulacji: {0:0.00} --- Rzeczywisty czas: {1:00} h {2:00} min --- Generacja zgłoszeń: {3}, lambda = {4:0.00}     ", simulation.CurrentTime, span.Hours, span.Minutes, genStatus, generator.Lambda);
+            Console.WriteLine("Czas symulacji: {0:0.00} --- Rzeczywisty czas: {1:00} h {2:00} min --- Generacja zgłoszeń: {3}, średni czas zgłoszeń = {4:0.00}", simulation.CurrentTime, span.Hours, span.Minutes, genStatus, generator.AverageTimeBetweenPatients);
 
             //mainQueueLengthHistory.Add(mainQueue.GetQueueLength());
             //Console.WriteLine($"\nDługość kolejki {mainQueue.ID}: {l:00}");
 
-            Console.Write("\nSystemy kolejkowe:");
             foreach (PatientQueue queue in queues)
             {
                 Console.Write($"\nKolejka {queue.Name}: ");
@@ -159,7 +158,7 @@ namespace ClinicQueueSimulation
             File.WriteAllText(simDataPath, simCSV.ToString());
 
             StringBuilder patientCSV = new();
-            string headerLine = "ID,Class name,Priority,Time spent in system [s],Time spent in queue [s],Wyleczony,Był w tylu systemach,System na którym skończył";
+            string headerLine = "ID,Class name,Priority,Time spent in system [s],Time spent in queue [s],Wyleczony,Był w tylu systemach,Ostatni lekarz ID,Obecny system ID";
             patientCSV.AppendLine(headerLine);
             foreach (Patient patient in generator.GeneratedPatients)
             {

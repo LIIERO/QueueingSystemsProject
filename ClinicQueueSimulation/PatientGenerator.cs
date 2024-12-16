@@ -19,7 +19,7 @@ namespace ClinicQueueSimulation
 
         private Random randomizer = new Random();
 
-        public double Lambda => 100 * (TimeBetweenAttempts / PercentageChanceEachAttempt);
+        public double AverageTimeBetweenPatients => 100 * (TimeBetweenAttempts / PercentageChanceEachAttempt);
 
         public PatientGenerator(uint id, double timeBetweenAttempts, int percentageChanceEachAttempt, List<PatientClass> availablePatientClasses) : base()
         {
