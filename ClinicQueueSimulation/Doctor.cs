@@ -11,7 +11,6 @@ namespace ClinicQueueSimulation
         public int ID { get; private set; }
         public double ServiceTime { get; private set; }
         public int InputQueueID { get; private set; } // From which queue does the doctor take patients from?
-        //public int TargetQueueID { get; private set; } // Which queue does the doctor put "healed" patients to?
         public string InputSystemName { get; set; }
         public int NOPatientsCured { get; private set; } = 0;
         public bool IsWorking { get; private set; } = false;

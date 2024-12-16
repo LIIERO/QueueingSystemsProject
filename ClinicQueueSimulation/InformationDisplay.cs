@@ -13,7 +13,8 @@ namespace ClinicQueueSimulation
     {
         //private const string simDataPath = "E:\\SzkolaProgramowanie\\SK\\QueueingSystemsProject\\SimulationResults\\simulationData.csv";
         //private const string patientDataPath = "E:\\SzkolaProgramowanie\\SK\\QueueingSystemsProject\\SimulationResults\\patientData.csv";
-        private string simDataPath;
+        private string queueDataPath;
+        private string systemDataPath;
         private string patientDataPath;
 
         private Simulation simulation;
@@ -23,7 +24,8 @@ namespace ClinicQueueSimulation
         private Doctor[] doctors;
 
         private List<int> mainQueueLengthHistory = new();
-        private StringBuilder simCSV = new();
+        private StringBuilder queueCSV = new();
+        private StringBuilder systemCSV = new();
 
         private Thread consoleUpdateThread;
 
@@ -32,7 +34,8 @@ namespace ClinicQueueSimulation
             //Console.SetBufferSize(200, 30);
 
             string sCurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            simDataPath = Path.GetFullPath(Path.Combine(sCurrentDirectory, @"..\..\..\..\SimulationResults\simulationData.csv"));
+            queueDataPath = Path.GetFullPath(Path.Combine(sCurrentDirectory, @"..\..\..\..\SimulationResults\queueData.csv"));
+            systemDataPath = Path.GetFullPath(Path.Combine(sCurrentDirectory, @"..\..\..\..\SimulationResults\systemData.csv"));
             patientDataPath = Path.GetFullPath(Path.Combine(sCurrentDirectory, @"..\..\..\..\SimulationResults\patientData.csv"));
 
             this.simulation = simulation;
@@ -50,7 +53,8 @@ namespace ClinicQueueSimulation
                 headerLine.Append(',');
                 headerLine.Append(q.Name);
             }
-            simCSV.AppendLine(headerLine.ToString());
+            queueCSV.AppendLine(headerLine.ToString());
+            systemCSV.AppendLine(headerLine.ToString());
         }
 
         ~InformationDisplay()
@@ -67,13 +71,26 @@ namespace ClinicQueueSimulation
 
             // Writing data to CSV
             StringBuilder queueLine = new();
-            queueLine.Append(simulation.CurrentTime.ToString(CultureInfo.InvariantCulture));
+            StringBuilder systemLine = new();
+            string currentTime = simulation.CurrentTime.ToString(CultureInfo.InvariantCulture);
+            queueLine.Append(currentTime);
+            systemLine.Append(currentTime);
             foreach (PatientQueue q in queues)
             {
+                int queueLen = q.GetQueueLength();
+
                 queueLine.Append(',');
-                queueLine.Append(q.GetQueueLength().ToString());
+                queueLine.Append(queueLen.ToString());
+
+                foreach (Doctor d in q.AssignedDoctors)
+                {
+                    if (d.IsWorking) queueLen++;
+                }
+                systemLine.Append(',');
+                systemLine.Append(queueLen.ToString());
             }
-            simCSV.AppendLine(queueLine.ToString());
+            queueCSV.AppendLine(queueLine.ToString());
+            systemCSV.AppendLine(systemLine.ToString());
 
             consoleUpdateThread.Join();
         }
@@ -155,7 +172,8 @@ namespace ClinicQueueSimulation
             //Console.WriteLine(EventManager.NoPatientAddedToSevenQueue);
 
             // Writing to csv
-            File.WriteAllText(simDataPath, simCSV.ToString());
+            File.WriteAllText(queueDataPath, queueCSV.ToString());
+            File.WriteAllText(systemDataPath, systemCSV.ToString());
 
             StringBuilder patientCSV = new();
             string headerLine = "ID,Class name,Priority,Time spent in system [s],Time spent in queue [s],Wyleczony,Był w tylu systemach,Ostatni lekarz ID,Obecny system ID";
